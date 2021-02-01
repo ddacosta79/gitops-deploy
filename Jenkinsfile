@@ -16,21 +16,25 @@ pipeline {
                     // Uncomment to get lots of debugging output
                     //openshift.logLevel(1)
                     openshift.withCluster() {
-                        openshift.verbose()
+                        openshift.verbose(3)
                         def pj = openshift.selector("project", "${env.PRJ}")
                         def pjexist = pj.exists()
                         if (!pjexist) {
                             echo("Create project ${env.PRJ}")
                             openshift.newProject("${env.PRJ}")
-                        } else {
-                            echo('Project already exist')
-                        }
-                        openshift.withProject("${env.PRJ}") {
-                            echo('Grant to developer read access to the project')
-                            openshift.raw('policy', 'add-role-to-group', 'view', 'admins')
-                            openshift.raw('policy', 'add-role-to-group', 'edit', 'developers')
                             echo("Create app ${env.APP}") 
                             openshift.newApp("${env.GIT_URL}#${env.BRANCH_NAME}", "--strategy source", "--name ${env.APP}")
+                            openshift.withProject("${env.PRJ}") {
+                                echo('Grant to developer admin access to the project')
+                                openshift.raw('policy', 'add-role-to-group', 'view', 'admins')
+                                openshift.raw('policy', 'add-role-to-group', 'edit', 'developers')
+                            }
+                        } else {
+                            echo('Project and App already exist')
+                            echo('Update the App with new build')
+                            openshift.withProject("${env.PRJ}") {
+                                openshift.startBuild("--from-build=${env.APP}")
+                            }
                         }
                     }
                 }
