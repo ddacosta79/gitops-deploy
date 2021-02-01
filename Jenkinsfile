@@ -32,7 +32,7 @@ pipeline {
                             echo('Project and App already exist')
                             echo('Update the App with new build')
                             openshift.withProject("${env.PRJ}") {
-                                openshift.startBuild("--from-build=${env.APP}")
+                                openshift.startBuild("${env.APP}")
                             }
                         }
                     }
