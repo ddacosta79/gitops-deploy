@@ -16,8 +16,15 @@ pipeline {
                     // Uncomment to get lots of debugging output
                     //openshift.logLevel(1)
                     openshift.withCluster() {
-                        echo("Create project ${env.PRJ}") 
-                        openshift.newProject("${env.PRJ}")
+                        openshift.verbose()
+                        try {
+                            echo("Create project ${env.PRJ}")
+                            openshift.newProject("${env.PRJ}")
+                        } catch ( e ) {
+                            // The exception is a hudson.AbortException with details
+                            // about the failure.
+                            "Error encountered: ${e}"
+                        }
                         openshift.withProject("${env.PRJ}") {
                             echo('Grant to developer read access to the project')
                             openshift.raw('policy', 'add-role-to-group', 'view', 'admins')
