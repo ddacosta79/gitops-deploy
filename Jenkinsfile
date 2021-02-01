@@ -1,3 +1,4 @@
+def appstatus
 pipeline {
     environment {
         DOMAIN='apps.ocpddc1.os.fyre.ibm.com'
@@ -31,7 +32,7 @@ pipeline {
                         } else {
                             echo('Project and App already exist')
                             echo('Update the App with new build')
-                            def appstatus = "update"
+                            appstatus = "update"
                             openshift.withProject("${env.PRJ}") {
                                 openshift.startBuild("${env.APP}")
                             }
