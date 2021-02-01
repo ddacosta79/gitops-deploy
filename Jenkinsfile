@@ -16,7 +16,6 @@ pipeline {
                     // Uncomment to get lots of debugging output
                     //openshift.logLevel(1)
                     openshift.withCluster() {
-                        openshift.verbose(3)
                         def pj = openshift.selector("project", "${env.PRJ}")
                         def pjexist = pj.exists()
                         if (!pjexist) {
