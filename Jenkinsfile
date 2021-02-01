@@ -17,13 +17,13 @@ pipeline {
                     //openshift.logLevel(1)
                     openshift.withCluster() {
                         openshift.verbose()
-                        try {
+                        def pj = openshift.selector("project", "${env.PRJ}")
+                        def pjexist = pj.exists()
+                        if (!pjexist) {
                             echo("Create project ${env.PRJ}")
                             openshift.newProject("${env.PRJ}")
-                        } catch ( e ) {
-                            // The exception is a hudson.AbortException with details
-                            // about the failure.
-                            "Error encountered: ${e}"
+                        } else {
+                            echo('Project already exist')
                         }
                         openshift.withProject("${env.PRJ}") {
                             echo('Grant to developer read access to the project')
