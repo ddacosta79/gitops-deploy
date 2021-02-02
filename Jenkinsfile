@@ -18,7 +18,7 @@ pipeline {
                     //openshift.logLevel(1)
                     openshift.withCluster() {
                         openshift.withProject("${env.PRJ}"){
-                            def projectName=openshift.raw("project -q")
+                            def projectName=openshift.raw("${env.PRJ} -q")
                             echo("Current project ${projectName}")
                             def pjexist = projectName.exists()
                         }
