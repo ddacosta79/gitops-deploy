@@ -17,7 +17,12 @@ pipeline {
                     // Uncomment to get lots of debugging output
                     //openshift.logLevel(1)
                     openshift.withCluster() {
-                        def pjexist = openshift.selector("project", "${env.PRJ}").exists()
+                        openshift.withProject("${env.PRJ}"){
+                            def projectName=openshift.raw(“project -q”)
+                            echo("Current project ${projectName}")
+                            def pjexist = projectName.exists()
+                        }
+                        // def pjexist = openshift.selector("project", "${env.PRJ}").exists()
                         if (!pjexist) {
                             echo("Create project ${env.PRJ}")
                             openshift.newProject("${env.PRJ}")
