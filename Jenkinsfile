@@ -14,13 +14,11 @@ pipeline {
     stages {
         stage('set env') {
             steps {
-                steps {
-                    script {
-                        if (env.BRANCH_NAME.equals("master")) {
-                            PRJ="hello-pro"
-                            TYPE='pro'
-                            echo("Create app ${env.PRJ} in ${env.TYPE}") 
-                        }
+                script {
+                    if (env.BRANCH_NAME.equals("master")) {
+                        PRJ="hello-pro"
+                        TYPE='pro'
+                        echo("Create app ${env.PRJ} in ${env.TYPE}") 
                     }
                 }
             }
