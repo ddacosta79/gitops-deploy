@@ -1,8 +1,10 @@
+def appstatus
 pipeline {
     environment {
         DOMAIN='apps.ocpddc1.os.fyre.ibm.com'
-        PRJ="hello-${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
+        PRJ="hello-${env.BRANCH_NAME}"
         APP='nodeapp'
+        TYPE='dev' // default value is dev
     }
     agent {
       node {
@@ -10,19 +12,44 @@ pipeline {
       }
     }
     stages {
+        stage('set env') {
+            steps {
+                script {
+                    if (env.BRANCH_NAME.equals("master")) {
+                        PRJ="hello-pro"
+                        TYPE='pro'
+                    }
+                    echo("working on app ${env.PRJ} in ${env.TYPE}") 
+                }
+            }
+        }
         stage('create') {
             steps {
                 script {
                     // Uncomment to get lots of debugging output
                     //openshift.logLevel(1)
                     openshift.withCluster() {
-                        echo("Create project ${env.PRJ}") 
-                        openshift.newProject("${env.PRJ}")
-                        openshift.withProject("${env.PRJ}") {
-                            echo('Grant to developer read access to the project')
-                            openshift.raw('policy', 'add-role-to-user', 'view', 'developer')
-                            echo("Create app ${env.APP}") 
-                            openshift.newApp("${env.GIT_URL}#${env.BRANCH_NAME}", "--strategy source", "--name ${env.APP}")
+                        openshift.withProject("${env.PRJ}"){
+                            def appexist = openshift.selector('bc', "${env.APP}").exists()
+                        
+                        //    echo("Create project ${env.PRJ}")
+                        //    openshift.newProject("${env.PRJ}")
+                            if (!appexist) {
+                                echo("Create app ${env.APP}") 
+                                openshift.newApp("${env.GIT_URL}#${env.BRANCH_NAME}", "--strategy source", "--name ${env.APP}")
+                                //openshift.withProject("${env.PRJ}") {
+                                //    echo('Grant to developer admin access to the project')
+                                //    openshift.raw('policy', 'add-role-to-group', 'view', 'admins')
+                                //    openshift.raw('policy', 'add-role-to-group', 'edit', 'developers')
+                                } 
+                            else {
+                                echo('Project and App already exist')
+                                echo('Update the App with new build')
+                                appstatus = "update"
+                                openshift.withProject("${env.PRJ}") {
+                                    openshift.startBuild("${env.APP}")
+                                }
+                            }
                         }
                     }
                 }
@@ -54,14 +81,16 @@ pipeline {
                 script {
                     openshift.withCluster() {
                         openshift.withProject("${env.PRJ}") {
-                            echo("Expose route for service ${env.APP}") 
-                            // Default Jenkins settings to not allow to query properties of an object
-                            // So we cannot query the widlcard domain of the ingress controller
-                            // Nor the auto genereted host of a route
-                            openshift.expose("svc/${env.APP}", "--hostname ${env.PRJ}.${env.DOMAIN}")
-                            echo("Wait for deployment ${env.APP} to finish") 
-                            timeout(5) {
-                                openshift.selector('deployment', "${env.APP}").rollout().status()
+                            if (appstatus != "update") {
+                                echo("Expose route for service ${env.APP}") 
+                                // Default Jenkins settings to not allow to query properties of an object
+                                // So we cannot query the widlcard domain of the ingress controller
+                                // Nor the auto genereted host of a route
+                                openshift.expose("svc/${env.APP}", "--hostname ${env.PRJ}.${env.DOMAIN}")
+                                echo("Wait for deployment ${env.APP} to finish") 
+                                timeout(5) {
+                                    openshift.selector('deployment', "${env.APP}").rollout().status()
+                                }
                             }
                         }
                     }
@@ -76,16 +105,6 @@ pipeline {
             steps {
                 echo "Check that '${env.PRJ}.${env.DOMAIN}' returns HTTP 200"
                 sh "curl -s --fail ${env.PRJ}.${env.DOMAIN}"
-            }
-        }
-    }
-    post {
-        always {
-            script {
-                openshift.withCluster() {
-                    echo("Delete project ${env.PRJ}") 
-                    openshift.delete("project/${env.PRJ}")
-                }
             }
         }
     }
