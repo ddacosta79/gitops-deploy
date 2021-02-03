@@ -18,26 +18,25 @@ pipeline {
                     //openshift.logLevel(1)
                     openshift.withCluster() {
                         openshift.withProject("${env.PRJ}"){
-                            def pj = openshift.project()
-                            echo "Using project: ${openshift.project()}"
-                        }
-                        // def pjexist = openshift.selector("project", "${env.PRJ}").exists()
-                        if (!pj) {
-                            echo("Create project ${env.PRJ}")
-                            openshift.newProject("${env.PRJ}")
-                            echo("Create app ${env.APP}") 
-                            openshift.newApp("${env.GIT_URL}#${env.BRANCH_NAME}", "--strategy source", "--name ${env.APP}")
-                            openshift.withProject("${env.PRJ}") {
-                                echo('Grant to developer admin access to the project')
-                                openshift.raw('policy', 'add-role-to-group', 'view', 'admins')
-                                openshift.raw('policy', 'add-role-to-group', 'edit', 'developers')
-                            }
-                        } else {
-                            echo('Project and App already exist')
-                            echo('Update the App with new build')
-                            appstatus = "update"
-                            openshift.withProject("${env.PRJ}") {
-                                openshift.startBuild("${env.APP}")
+                            def appexist = openshift.selector('bc', "${env.APP}").exists()
+                        
+                        //    echo("Create project ${env.PRJ}")
+                        //    openshift.newProject("${env.PRJ}")
+                            if (!appexist) {
+                                echo("Create app ${env.APP}") 
+                                openshift.newApp("${env.GIT_URL}#${env.BRANCH_NAME}", "--strategy source", "--name ${env.APP}")
+                                //openshift.withProject("${env.PRJ}") {
+                                //    echo('Grant to developer admin access to the project')
+                                //    openshift.raw('policy', 'add-role-to-group', 'view', 'admins')
+                                //    openshift.raw('policy', 'add-role-to-group', 'edit', 'developers')
+                                } 
+                            else {
+                                echo('Project and App already exist')
+                                echo('Update the App with new build')
+                                appstatus = "update"
+                                openshift.withProject("${env.PRJ}") {
+                                    openshift.startBuild("${env.APP}")
+                                }
                             }
                         }
                     }
