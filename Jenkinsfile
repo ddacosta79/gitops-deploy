@@ -16,8 +16,8 @@ pipeline {
             steps {
                 script {
                     if (env.BRANCH_NAME.equals("master")) {
-                        PRJ="hello-pro"
-                        TYPE='pro'
+                        env.PRJ="hello-pro"
+                        env.TYPE='pro'
                     }
                     echo("working on app ${env.PRJ} in ${env.TYPE}") 
                 }
