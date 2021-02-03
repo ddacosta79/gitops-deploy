@@ -4,7 +4,7 @@ pipeline {
         DOMAIN='apps.ocpddc1.os.fyre.ibm.com'
         PRJ="hello-${env.BRANCH_NAME}"
         APP='nodeapp'
-        TYPE='default'
+        TYPE='dev' // default value is dev
     }
     agent {
       node {
@@ -18,8 +18,8 @@ pipeline {
                     if (env.BRANCH_NAME.equals("master")) {
                         PRJ="hello-pro"
                         TYPE='pro'
-                        echo("Create app ${env.PRJ} in ${env.TYPE}") 
                     }
+                    echo("working on app ${env.PRJ} in ${env.TYPE}") 
                 }
             }
         }
