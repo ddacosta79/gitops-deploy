@@ -30,7 +30,7 @@ pipeline {
                     // Uncomment to get lots of debugging output
                     //openshift.logLevel(1)
                     openshift.withCluster() {
-                        openshift.withProject("${env.PRJ}"){
+                        openshift.withProject("${PRJ}"){
                             def appexist = openshift.selector('bc', "${env.APP}").exists()
                         
                         //    echo("Create project ${env.PRJ}")
@@ -48,7 +48,7 @@ pipeline {
                                 echo('Project and App already exist')
                                 echo('Update the App with new build')
                                 appstatus = "update"
-                                openshift.withProject("${env.PRJ}") {
+                                openshift.withProject("${PRJ}") {
                                     openshift.startBuild("${env.APP}")
                                 }
                             }
@@ -61,7 +61,7 @@ pipeline {
             steps {
                 script {
                     openshift.withCluster() {
-                        openshift.withProject("${env.PRJ}") {
+                        openshift.withProject("${PRJ}") {
                             def bc = openshift.selector('bc', "${env.APP}")
                             echo("Wait for build from bc ${env.APP} to finish") 
                             timeout(5) {
@@ -82,13 +82,13 @@ pipeline {
             steps {
                 script {
                     openshift.withCluster() {
-                        openshift.withProject("${env.PRJ}") {
+                        openshift.withProject("${PRJ}") {
                             if (appstatus != "update") {
                                 echo("Expose route for service ${env.APP}") 
                                 // Default Jenkins settings to not allow to query properties of an object
                                 // So we cannot query the widlcard domain of the ingress controller
                                 // Nor the auto genereted host of a route
-                                openshift.expose("svc/${env.APP}", "--hostname ${env.PRJ}.${env.DOMAIN}")
+                                openshift.expose("svc/${env.APP}", "--hostname ${PRJ}.${env.DOMAIN}")
                                 echo("Wait for deployment ${env.APP} to finish") 
                                 timeout(5) {
                                     openshift.selector('deployment', "${env.APP}").rollout().status()
@@ -105,8 +105,8 @@ pipeline {
                 ok 'Ok'
             }
             steps {
-                echo "Check that '${env.PRJ}.${env.DOMAIN}' returns HTTP 200"
-                sh "curl -s --fail ${env.PRJ}.${env.DOMAIN}"
+                echo "Check that '${PRJ}.${env.DOMAIN}' returns HTTP 200"
+                sh "curl -s --fail ${PRJ}.${env.DOMAIN}"
             }
         }
     }
