@@ -16,16 +16,11 @@ pipeline {
             steps {
                 script {
                     if (env.BRANCH_NAME.matches("master")) {
-                        env.PRJ="hello-pro"
-                        env.TYPE='pro'
+                        PRJ="hello-pro"
+                        TYPE='pro'
                         echo("working on PRO")
                     }
-                    if (env.BRANCH_NAME == "master") {
-                        env.PRJ="hello-pro"
-                        env.TYPE='pro'
-                        echo("working also on PRO")
-                    }
-                    echo("working on app ${env.PRJ} in ${env.TYPE}") 
+                    echo("working on app ${PRJ} in ${TYPE}") 
                 }
             }
         }
@@ -40,6 +35,7 @@ pipeline {
                         
                         //    echo("Create project ${env.PRJ}")
                         //    openshift.newProject("${env.PRJ}")
+                            echo("working to create app ${PRJ} in ${TYPE}")
                             if (!appexist) {
                                 echo("Create app ${env.APP}") 
                                 openshift.newApp("${env.GIT_URL}#${env.BRANCH_NAME}", "--strategy source", "--name ${env.APP}")
