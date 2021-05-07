@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Demo for workshop
 
 
@@ -10,6 +9,4 @@
 # run on openshift
 
 oc new-app --docker-image demo/nodejshello:1.0
-=======
 # gitops-deploy
->>>>>>> 927a359ff36364c1b1b48f27689efff9f6691ab8
